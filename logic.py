@@ -1,7 +1,7 @@
 import FreeSimpleGUI as sg
 
 def check_update(version):
-    version_file = r"\\swd19023\BC58_基盤技術\3520&3530共有\30_共通資料\ナレッジマネジメント\ファイル名統一\アプリ\latest_version.txt"
+    version_file = r"\\swd19023\BC58_基盤技術\3520&3530共有\30_共通資料\ナレッジマネジメント\ファイル名統一\latest_version.txt"
     try:
         with open(version_file, encoding="utf-8") as f:
             latest_version = f.read().strip()
