@@ -6,6 +6,7 @@ db_path = r"\\swd19023\BC58_基盤技術\3520&3530共有\30_共通資料\ナレ�
 
 _version_ = "1.0.0"
 logic.check_update(version=_version_)
+logic.check_db(path=db_path)
 
 layout = [
     [sg.Text("処理を選択してください。")],
