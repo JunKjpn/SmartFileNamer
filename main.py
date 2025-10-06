@@ -1,11 +1,12 @@
 import FreeSimpleGUI as sg
-import popup, logic
+import popup, logic, db
 
 # DBファイルのパス
-db_path = r"\\swd19023\BC58_基盤技術\3520&3530共有\30_共通資料\ナレッジマネジメント\ファイル名統一\targets.db"
+db_path = r"\\swd19023\BC58_基盤技術\3520&3530共有\30_共通資料\ナレッジマネジメント\ファイル名統一\smartFileName.db"
 
 _version_ = "1.0.0"
 logic.check_update(version=_version_)
+db.check(path=db_path)
 
 layout = [
     [sg.Text("処理を選択してください。")],

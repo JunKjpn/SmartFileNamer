@@ -16,7 +16,7 @@ def make_labels():
 
 
 def make_inputs(path):
-    themes = db.fetch_all(path=path)
+    themes = db.fetch_all_targets(path=path)
     today = datetime.date.today().strftime("%Y%m%d")
     input_width = 30
     return [
@@ -25,7 +25,7 @@ def make_inputs(path):
         [sg.InputText(key="-report-", size=(input_width, 1))],
         [sg.Listbox(values=themes, select_mode=sg.LISTBOX_SELECT_MODE_MULTIPLE, size=(input_width, 5),
                     key="-target-")],
-        [sg.InputText(key="-theme-", size=(input_width, 1))],
+        [sg.InputText(key="-theme-", size=(input_width, 1)), sg.Button("過去テーマ参照")],
         [sg.InputText(key="-ver-", size=(input_width, 1))]
     ]
 
@@ -58,6 +58,10 @@ def rename_file(path):
             event, values = window.read()
             if event in (sg.WINDOW_CLOSED, "Cancel"):
                 break
+            elif event == "過去テーマ参照":
+                selected = select_theme(path=path)
+                if selected:
+                    window["-theme-"].update(selected)
             elif event == "ファイル名変更":
                 filename, error  = logic.get_filename(values=values)
                 if error:
@@ -111,11 +115,16 @@ def create_filename(path):
         event, values = window.read()
         if event in (sg.WINDOW_CLOSED, "Cancel"):
             break
+        elif event == "過去テーマ参照":
+            selected = select_theme(path=path)
+            if selected:
+                window["-theme-"].update(selected)
         elif event == "ファイル名生成":
             filename, error  = logic.get_filename(values=values)
             if error:
                 sg.popup(error)
                 continue
+            db.add_themes(path=path, text=values["-theme-"])
             show_filename(filename=filename)
     window.close()
 
@@ -129,7 +138,7 @@ def input_targets(path):
         [sg.Text("管理用パスワードを入力してください")],
         [sg.InputText(key="-password-", password_char="*", size=(30, 8))],
         [sg.Text("登録されているテーマ一覧:")],
-        [sg.Listbox(values=db.fetch_all(path=path), size=(30, 8), key="theme_list")],
+        [sg.Listbox(values=db.fetch_all_targets(path=path), size=(30, 8), key="theme_list")],
         [sg.Button("Ok"), sg.Button("Cancel")],
     ]
     window = sg.Window("InputThemes", layout)
@@ -153,7 +162,7 @@ def input_targets(path):
                 continue
 
             try:
-                db.add(path=path, name=theme_name)
+                db.add_targets(path=path, name=theme_name)
                 sg.popup("登録しました！")
             except Exception as e:
                 if "UNIQUE constraint failed" in str(e):
@@ -161,13 +170,38 @@ def input_targets(path):
                 else:
                     sg.popup_error("DBエラー:", e)
 
-            window["theme_list"].update(db.fetch_all(path=path))
+            window["theme_list"].update(db.fetch_all_targets(path=path))
             window["-theme-"].update("")
 
     window.close()
 
+def select_theme(path):
+    themes = db.fetch_all_themes(path=path)
+    if not themes:
+        sg.popup("登録されているテーマはありません。")
+        return None
 
+    layout = [
+        [sg.Text("入力するテーマを選択してください")],
+        [sg.Listbox(values=themes, size=(30, 10), key="-THEME-", enable_events=True)],
+        [sg.Button("OK"), sg.Button("Cancel")]
+    ]
+    window = sg.Window("テーマ選択", layout)
+
+    selected_theme = None
+    while True:
+        event, values = window.read()
+        if event in (sg.WINDOW_CLOSED, "Cancel"):
+            break
+        elif event == "OK":
+            if values["-THEME-"]:
+                selected_theme = values["-THEME-"][0]  # 選択されたテーマ
+                break
+            else:
+                sg.popup("テーマを選択してください")
+    window.close()
+    return selected_theme
 
 if __name__ == "__main__":
-    db_path = r"\\swd19023\BC58_基盤技術\3520&3530共有\30_共通資料\ナレッジマネジメント\ファイル名統一\targets.db"
+    db_path = r"\\swd19023\BC58_基盤技術\3520&3530共有\30_共通資料\ナレッジマネジメント\ファイル名統一\smartFileName.db"
     create_filename(path=db_path)
